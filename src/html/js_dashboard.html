@@ -1,0 +1,153 @@
+<script>
+  const user = {};
+  const testRegex = {
+    dev: /S18422|producemo/i,
+    acestab: /acest/i,
+    vc: /vc/i,
+    dvc: /dvc/i,
+    dean: /dean/i,
+    head: /head/i,
+  };
+  const regex = {
+    notguest: /@sci.pdn.ac.lk|acest|vc|dvc|dean|head/i,
+    level1: /dean|vc|dvc/i,
+    level2: /head/i,
+    level3: /acest/i,
+    dev: /S18422@sci.pdn.ac.lk|S18527@sci.pdn.ac.lk|sathyaw@sci.pdn.ac.lk/i,
+  };
+
+  /*
+    let result = '';
+
+    const methodHandler = async () => {
+        result = await new Promise((resolve, reject) => {
+            resolve('Working Async Functions!');
+        });
+        console.log(result);
+        await display();
+    };
+
+    const display = () => {
+        console.log(result);
+    };
+
+    methodHandler();
+  */
+
+  $(document).ready(function () {
+    // Date
+    const d = new Date();
+    const strDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    $('#sysDate').text(strDate);
+
+    onLoadAppExecutions();
+  
+    // initialLoading();
+  
+    $('#onlineApplication').click(function (event) {
+      event.preventDefault();
+      viewOnlineApplication();
+    });
+
+    $('#viewApplications').click(function (event) {
+      event.preventDefault();
+      viewApplications();
+    });
+  });
+
+  function onLoadAppExecutions() {
+    showLoadingModal('Please Wait for Loading...');
+    google.script.run.withFailureHandler(onFailure).withSuccessHandler(initialLoading).initialLoading('DASHBOARD');
+  }
+
+  const initialLoading = async (retdata) => {
+    data = JSON.parse(retdata);
+    log(data);
+    if (data) {
+      setMenu(data.scriptUrl);
+      setAppInfo(data.appName, data.appDescription, data.appRedirectURL);
+    }
+    user.email = await loadUser();
+    if (await user.email) {
+      user.domain = user.email.split('@')[1];
+      user.username = user.email.split('@')[0];
+      user.faculty = user.domain.split('.')[0];
+
+      // show tiles in the dashboard according to user roles
+
+      if (!regex.notguest.test(user.email)) {
+        $('#tile-onlineApplication').show();
+        $('#username').text('guest user');
+      } else {
+        $('#username').text(user.email);
+        $('#tile-onlineApplication').show();
+        $('#tile-viewApplications').show();
+        // $('#tile-downloadApplications').show();
+      }
+
+      $('#modalLoading').modal('hide');
+    }
+  };
+
+  const tester = (email) => {
+    console.log(`
+      email:\t${email}
+      dev:\t${testRegex.dev.test(email)}
+      acestab:\t${testRegex.acestab.test(email)}
+      vc:\t${testRegex.vc.test(email)}
+      dvc:\t${testRegex.dvc.test(email)}
+      dean:\t${testRegex.dean.test(email)}
+      head:\t${testRegex.head.test(email)}
+    `);
+  };
+
+  const loadUser = () => {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler((retdata) => {
+          resolve(retdata);
+        })
+        .withFailureHandler((error) => {
+          reject(error);
+        })
+        .getUser();
+    });
+  };
+
+  const viewOnlineApplication = () => {
+    showLoadingModal('Please Wait for Loading...');
+    google.script.run
+      .withSuccessHandler(function (url) {
+        console.log(url);
+        window.open(url, '_blank');
+        $('#modalLoading').modal('hide');
+      })
+      .router('APPLICATION');
+  };
+
+  const viewApplications = async () => {
+    showLoadingModal('Please Wait for Loading...');
+    const route = await getAdminRoute();
+    await google.script.run
+      .withSuccessHandler(function (url) {
+        // console.log(url);
+        window.open(url, '_blank');
+        $('#modalLoading').modal('hide');
+      })
+      .router(route);
+  };
+
+  const getAdminRoute = () => {
+    let route = '';
+    if (regex.dev.test(user.email)) {
+      route = 'SHORTLIST_FINAL';
+    } else if (regex.level1.test(user.email)) {
+      route = 'SHORTLIST_DEANVC';
+    } else if (regex.level2.test(user.email)) {
+      route = 'SHORTLIST_HOD';
+    } else if (regex.level3.test(user.email)) {
+      route = 'SHORTLIST_ACESTAB';
+    }
+    return route;
+  };
+</script>

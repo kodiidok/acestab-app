@@ -1,0 +1,68 @@
+<script>
+  const request = {};
+  let redirectURL = '';
+
+  $(document).ready(function () {
+    // Date
+    // const d = new Date();
+    // const strDate = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    // $('#sysDate').text(strDate);
+
+    // onLoadAppExecutions();
+
+    $('#profile').click(function () {
+      google.script.run
+        .withSuccessHandler((data) => {
+          console.log(data);
+        })
+        .withFailureHandler((error) => {
+          console.error(error);
+        })
+        .getUser();
+    });
+  });
+
+  function setMenu(appurl) {
+    $('#app-menu-01').attr('href', appurl);
+    $('#app-menu-02').attr('href', `${appurl}?page=hod`);
+  }
+
+  function setAppInfo(appName, appDescription, appRedirectURL) {
+    $('#appName').text(appName);
+    $('#appDescription').text(appDescription);
+    redirectURL = appRedirectURL;
+  }
+
+  function setUserInfo(email) {
+    $('#username').text(email);
+  }
+
+  function calculateDurationInMonths(startDate, endDate) {
+    let end = '';
+    const start = new Date(startDate);
+    if (endDate === undefined || endDate === null) {
+      end = new Date();
+    } else {
+      end = new Date(endDate);
+    }
+    const diffInTime = end.getTime() - start.getTime();
+    const diffInMonths = Math.round(diffInTime / (1000 * 3600 * 24 * 30));
+    return Math.ceil(diffInMonths / 12);
+  }
+
+  function log(data) {
+    // console.log(JSON.stringify(data, null, 1));
+    console.log(data);
+  }
+
+  async function setAndGetTempData(id) {
+    await new Promise((resolve, reject) => {
+      google.script.run.withFailureHandler(reject).withSuccessHandler(resolve).setTempData(id);
+    });
+
+    // eslint-disable-next-line no-return-await
+    return await new Promise((resolve, reject) => {
+      google.script.run.withFailureHandler(reject).withSuccessHandler(resolve).getTempData();
+    });
+  }
+</script>
